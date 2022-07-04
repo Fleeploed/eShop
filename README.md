@@ -13,7 +13,7 @@ Mobilní aplikace obsahuje možnost přidávat zboží do kategorií, registrova
     2. [Vytvoření skriptu](#Vytvoření-skriptu)
     3. [Konfiguraci serveru](#Konfiguraci-serveru)
     4. [Mobilní aplikace Manifest](#Mobilní-aplikace-Manifest)
-    5. [Mobilní aplikace Java](Mobilní-aplikace-Java)
+    5. [Mobilní aplikace Java](#Mobilní-aplikace-Java)
     
     
 ##	Analýza požadavků
@@ -147,3 +147,40 @@ Posledním krokem bylo spuštění skriptovacího serveru. Spuštění bylo prov
 Složka manifests obsahuje pouze jeden soubor `AndroidManifest.xml`. Tento soubor definuje důležité informace o aplikaci – název, verzi, ikony, jaká oprávnění aplikace používá, registruje všechny používané třídy aktivit, služby atd. Autor definoval SplashActivity jako spouštěcí aktivitu, která kontroluje aplikaci na autorizaci klienta. Pokud ne, pak aplikace otevře přihlašovací stránku, pokud ano, klient přejde na hlavní stránku. V manifestu souboru byla také nastavena oprávnění pro přístup k internetu, pro zápis a čtení souboru do paměti zařízení a do fotoaparátu zařízení
 
 ### Mobilní aplikace Java
+Složka java obsahuje zdrojový kód aplikace.
+
+První složka `adapter` slouží k práci se seznamy. Soubory zde jsou potřebné k zobrazení seznamů nákupních košíků, FAQ, objednávek, produktů, recenzí, vyhledávání, přání a hledaných výrazů. Také se v této složce používá k přidání nebo odebrání něčeho ze seznamu. Například v seznamu nákupního košíku je tlačítko přidat do seznamu přání.
+
+Druhá složka je `model`. Tato složka je určena pro zobrazování a příjem dat ze stránek. Řekněme, že uživatel klikne na tlačítko přidat položku do košíku. Data budou přenesena z této stránky na jinou. V této složce je další složka `apiResponse`. Zde jsou data získávána ze souboru `Api` a předávána webové stránce. 
+
+Třetí složka je `net`. Soubor API je určen k přijímání nebo odesílání dat od zprostředkovatele pomocí požadavků. Tento soubor je označen jako rozhraní a používá knihovnu `retrofit`. Ostatní soubory je potřeba k načtení dat z databáze.
+
+Čtvrtá složka `receiver` obsahuje jeden soubor. Tento soubor je určen pro kontrolu aplikace na síťové připojení.
+
+Pátá složka `repository` je určena k odeslání požadavků. Pro každou aktivitu je určen vlastní soubor Repository, ve kterém bude proveden požadavek.
+
+V šesté složce `storage` jsou pouze 2 soubory. Soubor `LanguageUtils` je určen k uložení nebo načtení jazyka v obecných nastaveních. Předpokládejme, že klient v aplikaci změní jazyk z angličtiny na češtinu a nyní je nutné, aby tento jazyk byl v aplikaci konfigurován i po ukončení aplikace. Další soubor `LoginUtils` ukládá uživatelská data do místního úložiště zařízení. Děje se tak proto, aby uživatel při každém otevření aplikace nezadával svůj e-mail a heslo.
+
+Sedmá složka `utils` obsahuje: 
+-	CommunicateUtils – potřebné k tomu, aby uživatel mohl hodnotit aplikaci; 
+-	Constant – zde je místní IP adresa; 
+-	ImageUtils – soubor je vyžadován pro konverzi obrázků; 
+-	InternetUtils – tento soubor kontroluje přístup k síti Internet; 
+-	ProgressDialog – soubor pro dialogové okno s indikátorem průběhu; 
+-	Slide – zobrazuje bannery v hlavní nabídce; 
+-	Utils – soubor je navržen tak, aby bylo možné produkt sdílet. 
+-	Validation – soubor ověří e-mail, heslo a jméno.
+
+Osmou a nejdůležitější složkou je `view`, který obsahuje aktivitu aplikace. Hlavní činnosti jsou uvedeny níže:
+-	AccountActivity – Tato aktivita otevře stránku uživatelského účtu. Jak je popsáno výše, zde jsou sekce, které pracují s použitím konstrukce skříně spínače. Zde se také provádí výběr jazyka pomocí funkce setLocale.
+-	AddProductActivity – v této aktivitě je stránka přidání produktu do databáze. Po zadání všech údajů o produktu, aktivita zkontroluje, zda jsou prázdné hodnoty. Dále budou hodnoty odeslány do složky viewmodel.
+-	AllClothesActivity, AllCosmeticsActivity – obě aktivity jsou si podobné, protože vypisují zboží na obrazovku. Aktivity odebere id ze souboru User, načte data pomocí názvu kategorie a id uživatele a zobrazí v layout souboru.
+-	CartActivity, WishListActivity – aktivity zobrazí stránky koše a seznam přání. Aktivity kontroluje, zda je zboží v seznamu. Při načítání produktu se používá speciální indikátor.
+-	HelpActivity – aktivity zobrazuje stránku FAQ. Zobrazení probíhá pomocí třídy ArrayList. Tato třída umožňuje vytvářet seznamy a je součástí knihovny Java.
+-	AuthenticationActivity – otevře stránku ověřování přístupovým kódem. Aktivita zkontroluje pravost přístupového kódu a otevře časovač pro případ, že jej uživatel bude chtít odeslat znovu.
+-	LoginActivity, SignUpActivity – otevřete přihlašovací a registrační stránku. Obě aktivity ověřují uživatelská data odesláním do souboru Validation.
+-	DetailsActivity – aktivita, která zobrazuje všechny informace o produktu. Obrázek produktu se zobrazí pomocí knihovny Glide, která přečte odkaz na tento obrázek.
+-	SearchActivity – zde můžete vyhledávat produkty podle klíčových slov. Když zadáte klíčové slovo, funkce se porovná s názvem produktu a zobrazí jej, pokud existuje nějaká shoda.
+
+Poslední složka `viewmodel` obsahuje všechny objekty pro každou aktivitu. ViewModel jsou objekty, které poskytují data pro komponenty uživatelského rozhraní.
+
