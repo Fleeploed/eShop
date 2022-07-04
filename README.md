@@ -8,7 +8,14 @@ Mobilní aplikace obsahuje možnost přidávat zboží do kategorií, registrova
     3. [Použité technologie](#Použité-technologie)
 2. [Návrh databáze](#Návrh-databáze)
 3. [Uživatelské rozhraní](#Uživatelské-rozhraní)
-
+4. [Implementace](#Implementace)
+    1. [Vytvoření databáze](#Vytvoření-databáze)
+    2. [Vytvoření skriptu](#Vytvoření-skriptu)
+    3. [Konfiguraci serveru](#Konfiguraci-serveru)
+    4. [Mobilní aplikace Manifest](#Mobilní-aplikace-Manifest)
+    5. [Mobilní aplikace Java](Mobilní-aplikace-Java)
+    
+    
 ##	Analýza požadavků
 ###	Funkční požadavky
 *Vytvořit registrační formulář uživatele, který bude obsahovat uživatelské jméno, e-mail a heslo.*
@@ -97,4 +104,46 @@ Uživatelské rozhraní se skládá z hlavní stránky, přihlášení, registra
 ![image](https://user-images.githubusercontent.com/39945830/177020580-a3850af3-fa04-4202-9a4f-fde786b5ec6f.png)
 ![image](https://user-images.githubusercontent.com/39945830/177020573-e1617dc6-5431-41ff-9653-ba4514be09df.png)
 
+## Implementace
+### Vytvoření databáze
+Databáze byla vytvořena pomocí SQL dotazu `CREATE DATABASE eshop`, což znamená vytvoření databáze s názvem eshop. 
 
+Samotné tabulky byly vytvořeny v databázi pomocí dotazu `CREATE TABLE "název tabulky"`.
+
+Práce se záznamy v tabulce probíhala ve skriptu. K načtení záznamů jsem použil dotaz `SELECT "název sloupce" FROM "název tabulky"`. Co se týče přidávání záznamů, byl použit dotaz `INSERT INTO "název tabulky“ VALUES („záznamy“)`.
+
+### Vytvoření skriptu
+Prvním krokem bylo vytvoření HTTP serveru. Ve skriptu `server.js` byl ke spuštění serveru použit následující kód:
+
+```JS
+const http = require('http')
+
+const appPort = 8080
+app.set('port', appPort)
+
+http.createServer(app).listen(appPort, () =>
+    console.log(`localhost:${appPort}`))
+```
+Metoda `http.createServer` "promění" počítač na HTTP server. Metoda app umožňuje přidávat komponenty navržené pro zpracování různých požadavků. Listen předává číslo portu, na kterém běží server. 
+
+
+Skript `config.js` ukazuje, že připojení je vytvořeno pomocí hostitele, přihlašovacího jména, hesla a samotné databáze.
+
+Uživatelský skript provádí registraci a autorizaci klienta porovnáním dvou zašifrovaných hesel z databáze a aplikace. Hesla jsou šifrována ve skriptu `encrypt.js`. V uživatelském skriptu je také generován speciální kód pro obnovu hesla. Tento kód a e-mail klienta budou odeslány skriptu `mail.js`. Dále pomocí knihovny nodemailer bude kód odeslán na e-mail klienta. V produktu je funkcí ukládání obrázků produktů do složky storage_product.
+
+
+###	Konfiguraci serveru
+Instalace serveru se provádí pomocí příkazu: `sudo apt install mysql-server`.
+
+Dále je pro spuštění serveru třeba zadat příkaz `sudo service mysql start`.
+
+Dalším krokem je instalace Node.js. K tomu je třeba přejít na příkazový řádek a zadat: `sudo apt install nodejs`.
+
+Dalším krokem je instalace balíčků Node.js. Instalace byla provedena příkazem: `sudo npm install`.
+
+Posledním krokem bylo spuštění skriptovacího serveru. Spuštění bylo provedeno příkazem: `sudo npm start`.
+
+### Mobilní aplikace Manifest
+Složka manifests obsahuje pouze jeden soubor `AndroidManifest.xml`. Tento soubor definuje důležité informace o aplikaci – název, verzi, ikony, jaká oprávnění aplikace používá, registruje všechny používané třídy aktivit, služby atd. Autor definoval SplashActivity jako spouštěcí aktivitu, která kontroluje aplikaci na autorizaci klienta. Pokud ne, pak aplikace otevře přihlašovací stránku, pokud ano, klient přejde na hlavní stránku. V manifestu souboru byla také nastavena oprávnění pro přístup k internetu, pro zápis a čtení souboru do paměti zařízení a do fotoaparátu zařízení
+
+### Mobilní aplikace Java
