@@ -14,7 +14,7 @@ Mobilní aplikace obsahuje možnost přidávat zboží do kategorií, registrova
     3. [Konfiguraci serveru](#Konfiguraci-serveru)
     4. [Mobilní aplikace Manifest](#Mobilní-aplikace-Manifest)
     5. [Mobilní aplikace Java](#Mobilní-aplikace-Java)
-    
+    6. [Mobilní aplikace res](#Mobilní-aplikace-res)
     
 ##	Analýza požadavků
 ###	Funkční požadavky
@@ -183,4 +183,62 @@ Osmou a nejdůležitější složkou je `view`, který obsahuje aktivitu aplikac
 -	SearchActivity – zde můžete vyhledávat produkty podle klíčových slov. Když zadáte klíčové slovo, funkce se porovná s názvem produktu a zobrazí jej, pokud existuje nějaká shoda.
 
 Poslední složka `viewmodel` obsahuje všechny objekty pro každou aktivitu. ViewModel jsou objekty, které poskytují data pro komponenty uživatelského rozhraní.
+
+Knihovna `Retrofit` umožňuje provádět dotazy GET, POST, PUT a DELETE. Aby oznámit některou z těchto dotaz je třeba zapsat jako anotaci. V závorkách k typu dotazu je uvedena cílová adresa. Po něm je uvedena metoda a typ vracejícího se objektu. 
+```Java
+    @GET("users/login")
+    Call<LoginApiResponse> logInUser(@Query("email") String email,
+                                     @Query("password") String password);
+```
+
+Před odesláním žádosti a přijetím výsledku je třeba inicializovat Retrofit a objekt rozhraní. Aby aplikace neměla stovku objektů, které plní stejnou funkci, vytvořil jsem celou inicializaci ve třídě RetrofitClient.
+
+```Java
+    private RetrofitClient() {
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+```
+Knihovna poskytuje možnost produkovat synchronní a asynchronní požadavek.
+```Java
+        final MutableLiveData<LoginApiResponse> mutableLiveData = new MutableLiveData<>();
+        RetrofitClient.getInstance().getApi().
+                logInUser(email, password).enqueue(new Callback<LoginApiResponse>() {
+            @Override
+            public void onResponse(Call<LoginApiResponse> call, Response<LoginApiResponse> response) {
+                LoginApiResponse loginResponse;
+                if(response.code() == 200) loginResponse = response.body();
+                else if (response.code() == 214) loginResponse = new LoginApiResponse("Účet neexistuje");
+                else loginResponse = new LoginApiResponse("Nesprávné heslo");
+                mutableLiveData.setValue(loginResponse);
+            }
+            @Override
+            public void onFailure(Call<LoginApiResponse> call, Throwable t) {
+                Log.d(TAG, t.getMessage());
+            }
+        });
+        return mutableLiveData;
+```
+Na začátku metody inicializuje parametry a poté odešle požadavky na server. Server vrátí kód žádosti, kterým vyvolá metodu `onResponse` a `onFailure`. OnResponse znamená, že vše proběhlo úspěšně, data jsou zpracována a uživatel je přesměrován na další stránku, nebo bude zaslána zpráva o špatných údajů. OnFailure znamená, že došlo k chybě při volání. 
+
+### Mobilní aplikace res
+Design aplikace je uložen ve složce `res`, ve které jsou uloženy různé zdroje aplikace. Celý design aplikace je vytvořen pomocí jazyka XML. Složka res je rozdělena do několika podsložek.
+
+První na řadě je složka `anim`, ve které jsou uloženy všechny animace v aplikaci. Animace nastane, když přejdete do navigační menu na hlavní stránce. Ve složce `slide_in_right` a `slide_out_left` jsou pouze dva soubory pro pravou a levou animaci.
+
+Dále následuje složka `drawable`. Jsou zde uloženy různé rastrové a vektorové obrázky. Například bannery a ikony. Rastrové obrázky lze ukládat v různých formátech pro každý smartphone.
+
+Složka `Layout` obsahuje celý design aplikace. Grafické prvky v aplikaci, jako jsou tlačítka nebo textová pole, jsou umístěny v takzvaném layout. Ve skutečnosti layout shromažďuje všechny grafické prvky a určuje umístění těchto prvků v okně. Existuje několik tříd rozložení. Nejčastěji používanou třídou v této aplikaci je `LinearLayout`, která umožňuje rozmístit komponenty jako jeden řádek nebo jeden sloupec. Typickým příkladem je stránka s informacemi o produktu. Používá se také třída `ConstraintLayout`. Třída umožňuje svázat komponentu s okraji obrazovky nebo s jinými komponentami. Příkladem použití této třídy je hlavní stránka v aplikaci. Pokud rozložení obsahuje velké množství prvků, které se nevejdou na obrazovku telefonu, musíte použít `ScrollView`, který umožňuje posouvání nahoru a dolů. Každá třída a komponenty v této třídě mají své vlastní charakteristiky. Může to být id, výška, šířka, pozadí, velikost textu atd.
+
+Ve složce `menu` jsou xml soubory používané pouze k vytvoření menu. Soubor `activity_product_drawer` obsahuje všechny ikony navigačního menu. Zbývající soubory obsahují ikony pro horní menu aplikace. Každá ikona má vlastní ID, jméno a samotnou ikonu ze složky pro drawable.
+
+Složky `mipmap` jsou určeny pouze pro umístění ikon aplikací. Program Android Studio automaticky vytvoří adaptivní ikonu pro každé rozlišení zařízení.
+
+Složka `values` ukládá soubory xml, které obsahují různé hodnoty používané v aplikaci, jako jsou rozměry, barvy nebo styly. Složka obsahuje soubory colors, dimens, styles a složku strings, která ukládá lokalizaci aplikace. `Colors` podle názvu jsou všechny barvy použité v aplikaci. `Dimens` jsou potřebné pro velikosti součástí v layout aplikace. Rozměry jsou specifikovány v jednotkách sp (pixely nezávislé na měřítku) a dp (pixely nezávislé na hustotě). Soubor `styles` obsahuje různé tématy aplikace. Téma je sbírka stylů, které poskytují pohled na aplikaci tak, aby vypadala jako nativní aplikace Android. Samotný Android má již několik předinstalovaných témat, která lze použít pro své účely. Složka `strings` obsahuje Soubor pro angličtinu a češtinu. Ve výchozím nastavení bude v libovolném zařízení Android použita anglická lokalizace označující kód `en_US`. Pokud telefon nenalezne požadovaný lokalizovaný zdroj, použije se anglická volba. Česká lokalizace je označována jako `cs_CZ`.
+
+Aby inicializovat `layout` v aktivitě, je třeba použít speciální identifikátor R. Tento identifikátor umožňuje přístup k souborům a komponentům ze složky res. Například pro zobrazení přihlašovací stránku na obrazovce, bylo zadán identifikátor `R.layout.activity_login` (R.typ_souboru.nazev_souboru).
+
+
 
