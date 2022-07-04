@@ -1,6 +1,9 @@
 # Mobilní aplikace eShop
 Mobilní aplikace obsahuje možnost přidávat zboží do kategorií, registrovat uživatele a poskytovat údaje o stavu zboží a další funkce. Aplikace je zpracována v prostředí Android Studio a Visual Studio Code s pomocí jazyků Java, JavaScript a MySQL.
 
+### Script: https://github.com/Fleeploed/eshop_js
+
+----------------------
 ## Obsah
 1. [Analýza požadavků](#Analýza-požadavků)
     1. [Funkční požadavky](#Funkční-požadavky)
